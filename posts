@@ -13,7 +13,6 @@ const Home = ({ userObj }) => {
     const [attachment, setAttachment] = useState('');
     const [count, setCount] = useState('');
     const [counter, setCounter] = useState('');
-    
     // const count = [];
     // const getNweets = async () => {
     //     const dbNweets = await getDocs(collection(dbservice, 'nweets'))
