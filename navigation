@@ -4,85 +4,131 @@ import Draggable, {DraggableCore} from 'react-draggable'
 import { auth, onSocialClick, dbservice, storage } from './serverbase'
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
 import './Navigation.css'
+import styled from 'styled-components'
 
 const onLogOutClick = () => auth.signOut();
-const checkbox = () => {
-  document.getElementById('nav-control').checked = false
-}
+  
 function Navigation({ isLoggedIn, userObj }) {
   const [open, setOpen] = useState(false);
-
-  const handleClick = () => {
-    setOpen((prev) => !prev);
-    console.log(open)
+  const [opening, setOpening] = useState(false);
+  const [chance, setChance] = useState(null)
+  const [moving, setMoving] = useState(false)
+  const handleClick = (event) => {
+    setChance(event.target.getBoundingClientRect().right)
+    const el = document.getElementsByClassName('navigation')
+    if(el[0].style.left === '-100%') {
+      el[0].style.left = '0'
+    }
+    if (opening === true) {
+      el[0].style.left = '0'
+      setOpening(false)
+    } 
+    if (el[0].style.left === '0') {
+      el[0].style.left = '-100%'
+      setOpening(true)
+    }
+    if (open === true) {
+    //   document.getElementById('nav-control').checked = false
+    // const el = document.getElementsByClassName('navigation')
+    // console.log(el[0].style.left)
+    // el[0].style.left = '-100%'
+    // if (el[0].style.left == '0') {
+    //   console.log(el)
+    //   setOpening(true)
+    // }
+    el[0].style.left = ''
+    }
   };
+  const checkbox = (event) => {
+    setChance(event.target.getBoundingClientRect().right)
+    document.getElementById('nav-control').checked = false
+    const el = document.getElementsByClassName('navigation')
+    el[0].style.left = '-100%'
+    if (el[0].style.left == '0') {
+      setOpening(true)
+    }
+  }
+  
+  let offsetX
+  // let offsetY
+  const add = (event) => {
+    const el = event.target
+    offsetX = event.clientX-el.getBoundingClientRect().left
+    // console.log(el.getBoundingClientRect().right)
+    // offsetY = event.clientX-el.getBoundingClientRect().left
+    el.addEventListener('mousemove', move)
+  }
+  const remove = (event) => {
+    const el = event.target
+    el.removeEventListener('mousemove', move)
+    
 
-  const handleClickAway = () => {
-    // document.getElementById('nav-control').checked = false
-    setOpen(false);
-    console.log(open)
-  };
-
+    // {moving && 
+    //   console.log(moving)
+    // }
+    // checkbox(event)
+    if (event.pageX-offsetX < 0) {
+      document.getElementById('nav-control').checked = false
+      el.style.left = '-100%'
+      setOpen(true)
+      setOpening(true)
+    }
+  }
+  const move = (event) => {
+    const el = event.target
+    if (event.pageX-offsetX < 0) {
+      el.style.left = `${event.pageX-offsetX}px`
+    } 
+  }
   return(
     <ClickAwayListener onClickAway={checkbox}>
-              {/* <nav className='navbar'>
-              <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
-    <span className="navbar-toggler-icon"></span>menus
-  </button>
-              </nav> */}
-      <div> 
-        <input type="checkbox" id="nav-control" className="nav-control" onClick={handleClick}/>
+      <div>
+        <input type="checkbox" id="nav-control" className="nav-control" onClick={(event) => handleClick(event)}/>
         <label htmlFor="nav-control" className="toggle-button">
           <div className="wolverine">
             <div className="claws"></div>
           </div>
         </label>
         {isLoggedIn &&
-        // <Draggable bounds={{ top: 0, left:-100, right:0, bottom:0}}>
-        <nav className="navigation">
-          <h1 className='nav-padding'>
-            <Link to='/newbasing/' onClick={checkbox}>Home</Link>
-          </h1>
-          <h1>
-            <Link to='/newbasing/profile' onClick={checkbox}>{userObj.displayName}'s Profile</Link>
-          </h1>
-          <h1>
-            <Link to='/newbasing/ranking' onClick={checkbox}>Ranking</Link>
-          </h1>
-          <h1>
-            <Link to="/newbasing/contact" onClick={checkbox}>Contact</Link>
-          </h1>
-          <h1>
-            <Link to="/newbasing/" onClick={() => {
-              onLogOutClick()
-              checkbox()
-            }}>Logout</Link>
-          </h1>
-        </nav>
-            // </Draggable> 
+          <Draggable onStop={(event) => {
+            checkbox(event)
+            setChance(true)
+          }} bounds={{ top: 0, left:-10000, right:0, bottom:0}}>
+            <nav id='nav' className="navigation">
+              <h1 className='nav-padding'>
+                <Link to='/newbasing/' onClick={(event) => checkbox(event)}>Home</Link>
+              </h1>
+              <h1>
+                <Link to='/newbasing/profile' onClick={(event) => checkbox(event)}>{userObj.displayName}'s Profile</Link>
+              </h1>
+              <h1>
+                <Link to='/newbasing/ranking' onClick={(event) => checkbox(event)}>Ranking</Link>
+              </h1>
+              <h1>
+                <Link to="/newbasing/contact" onClick={(event) => checkbox(event)}>Contact</Link>
+              </h1>
+              <h1>
+                <Link to="/newbasing/" onClick={(event) => {
+                  onLogOutClick()
+                  checkbox(event)
+                }}>Logout</Link>
+              </h1>
+            </nav>
+          </Draggable> 
         }
         {!isLoggedIn &&
-          <nav className="navigation">
+          <nav className="navigation" onMouseDown={(event) => add(event)} onMouseUp={(event) => remove(event)}>
             <h1 className='nav-padding'>
-              <Link to='/newbasing/' onClick={checkbox}>Home</Link>
+              <Link to='/newbasing/' onClick={(event) => checkbox(event)}>Home</Link>
             </h1>
             <h1>
-              <Link to='/newbasing/sign' onClick={checkbox}>Sign In&Up</Link>
+              <Link to='/newbasing/sign' onClick={(event) => checkbox(event)}>Sign In&Up</Link>
             </h1>
             <h1>
-              <Link to="/newbasing/contact" onClick={checkbox}>Contact</Link>
+              <Link to="/newbasing/contact" onClick={(event) => checkbox(event)}>Contact</Link>
             </h1>
           </nav>
         }
-          {/* <ul className='nav'>
-              <li>
-              <Link className='menu' to='/'>Home</Link>
-              </li>
-              <li>
-              <Link className='menu' to='/profile'>{userObj.displayName}'s Profile</Link>
-              </li>
-            </ul> */}
-        {/* <h1>Pure CSS3/HTML full screen slide out menu.</h1> */}
         </div>
       </ClickAwayListener>
     )
